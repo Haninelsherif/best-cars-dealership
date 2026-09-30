@@ -1,3 +1,40 @@
 import React,{useState} from "react";
 import "./Register.css";
-export default function Register(){const [form,setForm]=useState({userName:"",firstName:"",lastName:"",email:"",password:""});const change=e=>setForm({...form,[e.target.name]:e.target.value});const register=async e=>{e.preventDefault();const r=await fetch("/register/",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(form)});const j=await r.json();if(j.status){sessionStorage.setItem("username",j.userName);window.location.href="/";}else alert(j.error||"Registration failed")};return <main><h1>Create your Best Cars account</h1><form onSubmit={register}><input name="userName" placeholder="Username" onChange={change} required/><input name="firstName" placeholder="First Name" onChange={change} required/><input name="lastName" placeholder="Last Name" onChange={change} required/><input name="email" type="email" placeholder="Email" onChange={change} required/><input name="password" type="password" placeholder="Password" onChange={change} required/><button type="submit">Register</button></form></main>}
+
+export default function Register(){
+  const [form,setForm]=useState({
+    userName:"", firstName:"", lastName:"", email:"", password:""
+  });
+
+  const change=e=>setForm({...form,[e.target.name]:e.target.value});
+
+  const register=async e=>{
+    e.preventDefault();
+    const r=await fetch("/djangoapp/register",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(form)
+    });
+    const j=await r.json();
+    if(j.status){
+      sessionStorage.setItem("username",j.userName);
+      window.location.href="/";
+    }else{
+      alert(j.error||"Registration failed");
+    }
+  };
+
+  return (
+    <main>
+      <h1>Sign-up</h1>
+      <form onSubmit={register}>
+        <input name="userName" placeholder="Username" onChange={change} required/>
+        <input name="firstName" placeholder="First Name" onChange={change} required/>
+        <input name="lastName" placeholder="Last Name" onChange={change} required/>
+        <input name="email" type="email" placeholder="Email" onChange={change} required/>
+        <input name="password" type="password" placeholder="Password" onChange={change} required/>
+        <button type="submit">Register</button>
+      </form>
+    </main>
+  );
+}
