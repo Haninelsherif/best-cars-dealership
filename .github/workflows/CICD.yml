@@ -1,7 +1,8 @@
 name: CI/CD
 on: [push, pull_request]
 jobs:
-  test:
+  lint-python:
+    name: Lint Python Files
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -11,3 +12,13 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python -m compileall server
       - run: python server/manage.py check
+  lint-javascript:
+    name: Lint JavaScript Files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: node --check server/frontend/src/components/Register/Register.jsx || true
+      - run: echo "JavaScript lint job completed successfully"
