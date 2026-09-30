@@ -8,7 +8,7 @@ DEALERS=[
  {"id":3,"full_name":"Metro Cars","short_name":"Metro Cars","city":"Dallas","st":"TX","address":"88 Market St","zip":"75201"}]
 MAKES=[{"id":1,"name":"Toyota","description":"Japanese automotive manufacturer"},{"id":2,"name":"Mercedes","description":"German automotive manufacturer"},{"id":3,"name":"Audi","description":"German automotive manufacturer"},{"id":4,"name":"Kia","description":"Korean automotive manufacturer"},{"id":5,"name":"Nissan","description":"Japanese automotive manufacturer"}]
 REVIEWS=[{"id":1,"dealer_id":1,"name":"Alex","review":"Fantastic services","purchase":True,"sentiment":"Positive"},{"id":2,"dealer_id":2,"name":"Sam","review":"Helpful staff and a smooth experience.","purchase":True,"sentiment":"Positive"}]
-def home(request): return HttpResponse('<h1>Best Cars Dealership</h1><p>Browse dealers, reviews and car makes.</p>')
+def home(request): return HttpResponse(open("server/frontend/static/index.html",encoding="utf-8").read())
 def about(request): return HttpResponse(open("server/frontend/static/About.html",encoding="utf-8").read())
 def contact(request): return HttpResponse(open("server/frontend/static/Contact.html",encoding="utf-8").read())
 @csrf_exempt
@@ -29,8 +29,11 @@ def getdealerbyid(request,dealer_id):
  d=next((x for x in DEALERS if x["id"]==dealer_id),None); return JsonResponse(d or {"error":"Dealer not found"},status=200 if d else 404)
 def getdealersbyState(request,state): return JsonResponse([d for d in DEALERS if d["st"].lower()==state.lower()],safe=False)
 def getdealerreviews(request,dealer_id): return JsonResponse([r for r in REVIEWS if r["dealer_id"]==dealer_id],safe=False)
+@csrf_exempt
+def addreview(request,dealer_id):
+ if not request.user.is_authenticated: return JsonResponse({"error":"Authentication required"},status=401)
+ data=json.loads(request.body or b"{}"); review={"id":len(REVIEWS)+1,"dealer_id":dealer_id,"name":request.user.username,"review":data.get("review",""),"purchase":bool(data.get("purchase",False)),"sentiment":analyzereview_text(data.get("review",""))}; REVIEWS.append(review); return JsonResponse(review,status=201)
+def analyzereview_text(text):
+ positive={"fantastic","great","excellent","amazing","helpful","good"}; negative={"bad","terrible","awful","poor"}; words=set(text.lower().split()); return "Positive" if words & positive else ("Negative" if words & negative else "Neutral")
 def getallcarmakes(request): return JsonResponse(MAKES,safe=False)
-def analyzereview(request,text):
- positive={"fantastic","great","excellent","amazing","helpful","good"}; negative={"bad","terrible","awful","poor"}; words=set(text.lower().split())
- sentiment="Positive" if words & positive else ("Negative" if words & negative else "Neutral")
- return JsonResponse({"text":text,"sentiment":sentiment})
+def analyzereview(request,text): return JsonResponse({"text":text,"sentiment":analyzereview_text(text)})
